@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Core.Interfaces;
+using MongoDB.Bson;
 using System;
 
 namespace Core.Common
