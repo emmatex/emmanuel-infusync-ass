@@ -1,21 +1,16 @@
-﻿using System;
+﻿using Core.Common;
+using System;
 
 namespace Core.Entities
 {
-    public class Reservation
+    [BsonCollection("Reservation")]
+    public class Reservation : Document
     {
-        public int Id { get; set; }
-
-        public int RoomId { get; set; }
-
-        public Room Room { get; set; }
-
-      //  public List<Profile> Profiles { get; set; }
-
+        public int RoomNumber { get; set; }
+        public string UserId { get; set; }
         public DateTime CreatedOn { get; set; }
-
         public DateTime From { get; set; }
-
         public DateTime To { get; set; }
+        public string Email { get; set; }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Core.Enums;
+﻿using Core.Common;
+using Core.Enums;
+using MongoDB.Bson.Serialization.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,20 +9,16 @@ using System.Threading.Tasks;
 
 namespace Core.Entities
 {
-    public class Room
+    [BsonCollection("Room")]
+
+    public class Room : Document
     {
-        public int Id { get; set; }
-
         public int Number { get; set; }
-
         public string Description { get; set; }
-
-        public DateTime LastBooked { get; set; }
-
         public int Level { get; set; }
-
         public RoomType RoomType { get; set; }
-
         public float Amount { get; set; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     }
 }

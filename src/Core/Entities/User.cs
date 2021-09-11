@@ -1,6 +1,5 @@
 ﻿using Core.Common;
 using Core.Enums;
-using System.ComponentModel.DataAnnotations;
 
 namespace Core.Entities
 {
