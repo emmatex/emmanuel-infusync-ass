@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Infrastructure.Helpers
+namespace Core.Common
 {
     // Mongo Driver lacks attribute that allows us to set the collection name for documents, so I created one.
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]
