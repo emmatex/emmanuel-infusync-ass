@@ -1,7 +1,7 @@
 # Infusync Assessment
-##Hotel management application built on .net 5
+## Hotel management application built on .net 5
 
-[![Bintray](https://img.shields.io/badge/license-todaysolution-blue.svg?style=flat-square?maxAge=2592000)]()
+[![Bintray](https://img.shields.io/badge/license-infusync-blue.svg?style=flat-square?maxAge=2592000)]()
 [![Bintray](https://img.shields.io/badge/made%20with-dotnetcore5.0-blue.svg?style=flat-square?maxAge=2592000)]()
 
 ## Features
