@@ -2,7 +2,7 @@
 {
     public enum RoomType
     {
-        Standard,
+        Standard = 1,
         Suite
     }
 }

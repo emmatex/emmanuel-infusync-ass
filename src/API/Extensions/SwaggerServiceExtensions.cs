@@ -17,30 +17,24 @@ namespace API.Extensions
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
+                    Scheme = "Bearer",
                     Reference = new OpenApiReference
                     {
                         Type = ReferenceType.SecurityScheme,
                         Id = "Bearer"
                     }
                 };
-
                 c.AddSecurityDefinition("Bearer", securitySchema);
                 var securityRequirement = new OpenApiSecurityRequirement { { securitySchema, new[] { "Bearer" } } };
                 c.AddSecurityRequirement(securityRequirement);
             });
-
             return services;
         }
 
-        public static IApplicationBuilder UseSwaggerDocumention(this IApplicationBuilder app)
+        public static IApplicationBuilder UseSwaggerDocumentation(this IApplicationBuilder app)
         {
             app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Infusync API v1");
-            });
-
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"));
             return app;
         }
     }

@@ -1,6 +1,5 @@
 ﻿using Core.Common;
 using Core.Interfaces;
-using Infrastructure.Helpers;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
@@ -15,7 +14,7 @@ namespace Infrastructure.Repository
     {
         private readonly IMongoCollection<TDocument> _collection;
 
-        public GenericRepository(MongoDbSettings settings)
+        public GenericRepository(IMongoDbSettings settings)
         {
             var database = new MongoClient(settings.ConnectionString).GetDatabase(settings.DatabaseName);
             _collection = database.GetCollection<TDocument>(GetCollectionName(typeof(TDocument)));
@@ -23,7 +22,8 @@ namespace Infrastructure.Repository
 
         private protected string GetCollectionName(Type documentType)
         {
-            return ((BsonCollectionAttribute)documentType.GetCustomAttributes(typeof(BsonCollectionAttribute), true).FirstOrDefault())?.CollectionName;
+            return ((BsonCollectionAttribute)documentType.GetCustomAttributes(typeof(BsonCollectionAttribute), true)
+                .FirstOrDefault())?.CollectionName;
         }
 
         public virtual IQueryable<TDocument> AsQueryable()
@@ -82,5 +82,6 @@ namespace Infrastructure.Repository
             var filter = Builders<TDocument>.Filter.Eq(doc => doc.Id, document.Id);
             await _collection.FindOneAndReplaceAsync(filter, document);
         }
+
     }
 }

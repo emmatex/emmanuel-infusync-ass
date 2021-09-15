@@ -17,8 +17,9 @@
             {
                 400 => "You have made a bad request",
                 401 => "You are not authorized",
-                404 => "Resource found",
+                404 => "Resource not found",
                 500 => "Internal server error",
+                200 => "Saved Successfully",
                 _ => null
             };
         }

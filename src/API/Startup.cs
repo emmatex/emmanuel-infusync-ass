@@ -24,8 +24,10 @@ namespace API
 
             services.AddSingleton<IMongoDbSettings>(serviceProvider =>
                 serviceProvider.GetRequiredService<IOptions<MongoDbSettings>>().Value);
+
             services.AddAutoMapper(typeof(MappingProfiles));
             services.AddApplicationServices();
+            services.AddIdentityServices(_config);
             services.AddSwaggerDocumentation();
             services.AddCors(option =>
             {
@@ -34,18 +36,18 @@ namespace API
                     policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("*");
                 });
             });
+            services.AddControllers();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseMiddleware<ExceptionMiddleware>();
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
-
+            app.UseSwaggerDocumentation();
             app.UseRouting();
             app.UseCors("CorsPolicy");
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSwaggerDocumention();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

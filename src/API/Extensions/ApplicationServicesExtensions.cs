@@ -13,6 +13,7 @@ namespace API.Extensions
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddScoped<IAuthService, AuthService>();
+            services.AddTransient<IEmailService, EmailService>();
             services.AddScoped(typeof(IGenericRepository<>), (typeof(GenericRepository<>)));
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -22,16 +23,13 @@ namespace API.Extensions
                         .Where(e => e.Value.Errors.Count > 0)
                         .SelectMany(x => x.Value.Errors)
                         .Select(x => x.ErrorMessage).ToArray();
-
                     var errorResponse = new ApiValidationErrorResponse
                     {
                         Errors = errors
                     };
-
                     return new BadRequestObjectResult(errorResponse);
                 };
             });
-
             return services;
         }
     }
