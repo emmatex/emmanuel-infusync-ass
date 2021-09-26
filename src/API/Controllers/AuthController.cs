@@ -2,6 +2,7 @@
 using API.Errors;
 using AutoMapper;
 using Core.Entities;
+using Core.Enums;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -61,14 +62,18 @@ namespace API.Controllers
             _authService.CreatePasswordHash(register.Password, out passwordHash, out passwordSalt);
             userToCreate.PasswordHash = passwordHash;
             userToCreate.PasswordSalt = passwordSalt;
+            userToCreate.ClientState = ClientState.Registered;
             await _repository.InsertOneAsync(userToCreate);
-            var isSend = _emailService.SendEmail(register.FullName, register.Email);
-            if (!isSend)
-            {
-                await _repository.DeleteOneAsync(x => x.Email == register.Email);
-                return BadRequest(new ApiResponse(400, $"An error occured while trying to create account"));
-            }
             return StatusCode(201);
+
+            //This code block is meant for email service, 
+            //var isSend = _emailService.SendEmail(register.FullName, register.Email, EmailType.Register);
+            //if (isSend)
+            //{
+            //    await _repository.InsertOneAsync(userToCreate);
+            //    return StatusCode(201);
+            //}
+            //return BadRequest(new ApiResponse(400, $"An error occured while trying to create account, Kindly input a valid email address."));
         }
     }
 }

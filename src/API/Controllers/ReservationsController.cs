@@ -16,27 +16,34 @@ namespace API.Controllers
     public class ReservationsController : BaseController
     {
         private readonly IMapper _mapper;
-        private readonly IGenericRepository<Reservation> _repository;
-        private readonly IGenericRepository<RoomOccupied> _roomOccupiedRepository;
+        private readonly IEmailService _emailService;
+        private readonly IGenericRepository<Room> _repository;
 
-        public ReservationsController(IGenericRepository<Reservation> repository, IMapper mapper,
-            IGenericRepository<RoomOccupied> roomOccupiedRepository)
+        public ReservationsController(IGenericRepository<Room> repository, IMapper mapper, IEmailService emailService)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _roomOccupiedRepository = roomOccupiedRepository ?? throw new ArgumentNullException(nameof(roomOccupiedRepository));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<IEnumerable<ReservationDto>> GetReservations()
         {
-            var rooms = _repository.AsQueryable();
-            if(Role == UserRole.Customer.ToString())
+            var rooms = _repository.AsQueryable().Where(x => x.RoomState == RoomState.Reserved);
+            if (Role == UserRole.User.ToString())
             {
                 var reservations = rooms.Where(x => x.Email == Email).AsEnumerable();
                 return Ok(_mapper.Map<IEnumerable<ReservationDto>>(reservations));
             }
+            return Ok(_mapper.Map<IEnumerable<ReservationDto>>(rooms));
+        }
+
+        [HttpGet("availablerooms")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public ActionResult<IEnumerable<ReservationDto>> GetAvailableRooms()
+        {
+            var rooms = _repository.AsQueryable().Where(x => x.RoomState != RoomState.Reserved && x.RoomState == RoomState.Free);
             return Ok(_mapper.Map<IEnumerable<ReservationDto>>(rooms));
         }
 
@@ -56,13 +63,19 @@ namespace API.Controllers
         public async Task<IActionResult> CreateReservation(CreateReservationDto createDto)
         {
             if (createDto == null) return BadRequest(new ApiResponse(400));
-            var occupied = await _roomOccupiedRepository.FindOneAsync(x => x.RoomNumber == createDto.RoomNumber);
-            if (occupied != null) return BadRequest(new ApiResponse(404, $"Room {createDto.RoomNumber} is currently occupied"));
+            var reservation = await _repository.FindOneAsync(x => x.RoomNumber == createDto.RoomNumber);
+            if (reservation == null) return BadRequest(new ApiResponse(404, $"Room {createDto.RoomNumber} does not exists"));
+            if (reservation.ClientState == ClientState.BookedRoom) return BadRequest(new ApiResponse(404, $"Room {createDto.RoomNumber} has been booked."));
 
-            var reservation = _mapper.Map<Reservation>(createDto);
+
+            _mapper.Map(createDto, reservation);
             reservation.FullName = FullName;
             reservation.Email = Email;
-            await _repository.InsertOneAsync(reservation);
+            reservation.RoomState = RoomState.Reserved;
+            reservation.ClientState = ClientState.BookedRoom;
+
+            // var isSent = _emailService.SendEmail(FullName, Email, EmailType.Reservation);
+            await _repository.ReplaceOneAsync(reservation);
             return StatusCode(201);
         }
 
@@ -71,12 +84,11 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CancelReservation(int roomNo)
         {
-            var cancel = await _repository.FindOneAsync(x => x.RoomNumber == roomNo && x.Email == Email);
+            var cancel = await _repository.FindOneAsync(x => x.RoomNumber == roomNo && x.Email == Email && x.RoomState == RoomState.Reserved);
             if (cancel == null) return BadRequest(new ApiResponse(404));
 
-            var reservation = _mapper.Map<Reservation>(cancel);
-            reservation.IsCancelled = true;
-            await _repository.ReplaceOneAsync(reservation);
+            cancel.RoomState = RoomState.Free;
+            await _repository.ReplaceOneAsync(cancel);
             return StatusCode(204);
         }
 

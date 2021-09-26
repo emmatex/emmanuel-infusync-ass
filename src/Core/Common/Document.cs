@@ -7,6 +7,7 @@ namespace Core.Common
     public abstract class Document : IDocument
     {
         public ObjectId Id { get; set; }
-        public DateTime CreatedAt => Id.CreationTime;
+        public DateTime CreatedOn => Id.CreationTime;
+        public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     }
 }

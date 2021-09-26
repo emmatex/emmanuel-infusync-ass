@@ -10,6 +10,8 @@ namespace Core.Interfaces
         [BsonRepresentation(BsonType.String)]
         ObjectId Id { get; set; }
         [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
-        DateTime CreatedAt { get; }
+        DateTime CreatedOn { get; }
+        [BsonDateTimeOptions(Kind = DateTimeKind.Local)]
+        DateTime UpdatedDate { get; set; }
     }
 }

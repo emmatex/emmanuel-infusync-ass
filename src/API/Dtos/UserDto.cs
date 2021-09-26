@@ -9,4 +9,11 @@ namespace API.Dtos
         public string Email { get; set; }
         public string PersonalID { get; set; }
     }
+
+    public class CustomerReportDto
+    {
+        public string FullName { get; set; }
+        public decimal Amount { get; set; }
+        public int Days { get; set; }
+    }
 }

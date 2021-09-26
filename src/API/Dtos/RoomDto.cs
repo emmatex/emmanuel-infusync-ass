@@ -10,9 +10,9 @@ namespace API.Dtos
         public int RoomNumber { get; set; }
         public string Description { get; set; }
         public string RoomType { get; set; }
-        public float Amount { get; set; }
-        public bool CheckIns { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public double RoomAmount { get; set; }
+        public string RoomState { get; set; }
+        public DateTime CreatedOn { get; set; }
         public DateTime UpdatedDate { get; set; }
     }
 
@@ -25,8 +25,8 @@ namespace API.Dtos
         [Required]
         public RoomType RoomType { get; set; }
         [Required]
-        [Range(0.1, float.MaxValue, ErrorMessage = "Amount must be greater than zero")]
-        public float Amount { get; set; }
+        [Range(0.1, double.MaxValue, ErrorMessage = "Amount must be greater than zero")]
+        public double RoomAmount { get; set; }
     }
 
     public class CreateRoomDto : RoomManipulatedDto
@@ -38,8 +38,6 @@ namespace API.Dtos
     {
         [Required]
         public override string Description { get => base.Description; set => base.Description = value; }
-        [Required]
-        public bool CheckIns { get; set; }
     }
 
     public class FreeRoomDto

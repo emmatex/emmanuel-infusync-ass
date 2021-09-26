@@ -11,7 +11,7 @@ namespace API.Dtos
         public DateTime From { get; set; }
         public DateTime To { get; set; }
         public string Email { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedDate { get; set; }
     }
 
     public class CreateReservationDto

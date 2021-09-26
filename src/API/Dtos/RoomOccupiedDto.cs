@@ -10,9 +10,10 @@ namespace API.Dtos
         public DateTime To { get; set; }
         public int RoomNumber { get; set; }
         public string FullName { get; set; }
-        public bool IsOccupancy { get; set; }
-        public float Amount { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public string Email { get; set; }
+        public double TotalAmount { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public DateTime UpdatedDate { get; set; }
     }
 
     public class RoomOccupiedManipulatedDto
@@ -20,15 +21,13 @@ namespace API.Dtos
         [Required]
         public int RoomNumber { get; set; }
         [Required]
+        public string FullName { get; set; }
+        [Required]
+        public string Email { get; set; }
+        [Required]
         public DateTime From { get; set; }
         [Required]
         public DateTime To { get; set; }
-        [Required]
-        [Range(0.1, float.MaxValue, ErrorMessage = "Amount must be greater than zero")]
-        public float Amount { get; set; }
-        [Required]
-        public bool IsOccupancy { get; set; }
-
     }
 
     public class CreateRoomOccupiedDto : RoomOccupiedManipulatedDto

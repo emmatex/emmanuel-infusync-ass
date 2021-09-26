@@ -10,17 +10,20 @@ namespace API.Helpers
         {
             CreateMap<LoginDto, User>().ReverseMap();
             CreateMap<RegisterDto, User>().ReverseMap();
+            CreateMap<User, UserDto>().ReverseMap();
+
             CreateMap<Room, RoomDto>().ReverseMap();
             CreateMap<Room, FreeRoomDto>().ReverseMap();
             CreateMap<CreateRoomDto, Room>().ReverseMap();
             CreateMap<UpdateRoomDto, Room>().ReverseMap();
-            CreateMap<Reservation, ReservationDto>().ReverseMap();
-            CreateMap<CreateReservationDto, Reservation>().ReverseMap();
-            CreateMap<RoomOccupied, RoomOccupiedDto>().ReverseMap();
-            CreateMap<CreateRoomOccupiedDto, RoomOccupied>().ReverseMap();
-            CreateMap<UpdateRoomOccupiedDto, RoomOccupied>().ReverseMap();
-            CreateMap<User, UserDto>().ReverseMap();
-            CreateMap<RoomOccupied, UserDto>().ReverseMap();
+
+            CreateMap<Room, ReservationDto>().ReverseMap();
+            CreateMap<CreateReservationDto, Room>().ReverseMap();
+
+            CreateMap<Room, RoomOccupiedDto>().ReverseMap();
+            CreateMap<CreateRoomOccupiedDto, Room>().ReverseMap();
+            CreateMap<UpdateRoomOccupiedDto, Room>().ReverseMap();
+            CreateMap<Room, UserDto>().ReverseMap();
         }
     }
 }

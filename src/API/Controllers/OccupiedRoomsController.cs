@@ -1,35 +1,37 @@
 ﻿using API.Dtos;
 using API.Errors;
 using AutoMapper;
+using Core.Common;
 using Core.Entities;
 using Core.Enums;
 using Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = Access.Admin)]
     public class OccupiedRoomsController : BaseController
     {
         private readonly IMapper _mapper;
-        private readonly IGenericRepository<Room> _roomRepository;
-        private readonly IGenericRepository<RoomOccupied> _repository;
+        private readonly IGenericRepository<Room> _repository;
 
-        public OccupiedRoomsController(IGenericRepository<RoomOccupied> repository, IMapper mapper, IGenericRepository<Room> roomRepository)
+        public OccupiedRoomsController(IGenericRepository<Room> repository, IMapper mapper)
         {
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _roomRepository = roomRepository ?? throw new ArgumentNullException(nameof(roomRepository));
         }
 
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<RoomOccupiedDto>>> GetOccupiedRooms()
         {
-            var rooms = _repository.AsQueryable();
+            var rooms = _repository.AsQueryable().Where(x => x.RoomState == RoomState.Occupied);
             return Ok(_mapper.Map<IEnumerable<RoomOccupiedDto>>(rooms));
         }
 
@@ -43,68 +45,41 @@ namespace API.Controllers
             return Ok(_mapper.Map<RoomOccupiedDto>(room));
         }
 
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateOccupiedRoom(CreateRoomOccupiedDto createDto)
-        {
-            if (createDto == null) return BadRequest(new ApiResponse(400));
-            if (Role != UserRole.Admin.ToString()) return StatusCode(403, $"Access denied.");
-
-            var room = await _roomRepository.FindOneAsync(x => x.RoomNumber == createDto.RoomNumber);
-            if (room == null) return BadRequest(new ApiResponse(404, $"Room no {createDto.RoomNumber} does not exists"));
-            if (room.CheckIns) return BadRequest(new ApiResponse(404, $"Room no {createDto.RoomNumber} is occupied"));
-
-            var itemToAdd = _mapper.Map<RoomOccupied>(createDto);
-            itemToAdd.Email = Email;
-            itemToAdd.FullName = FullName;
-            await _repository.InsertOneAsync(itemToAdd);
-            // update room checkins status
-            room.CheckIns = true;
-            await _roomRepository.ReplaceOneAsync(room);
-            return StatusCode(201);
-        }
-
-        [HttpPut("{roomId:length(24)}")]
+        [HttpPut("checkin")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult> UpdateOccupiedRoom(string roomId, UpdateRoomOccupiedDto updateDto)
+        public async Task<IActionResult> CheckIn(UpdateRoomOccupiedDto updateDto)
         {
             if (updateDto == null) return BadRequest(new ApiResponse(400));
-            if (Role != UserRole.Admin.ToString()) return StatusCode(403, $"Access denied.");
+            var room = await _repository.FindOneAsync(x => x.RoomNumber == updateDto.RoomNumber);
+            if (room == null) return BadRequest(new ApiResponse(404, $"Room no {updateDto.RoomNumber} does not exists"));
+            if (room.ClientState == ClientState.CheckIn) return BadRequest(new ApiResponse(404, $"Room no {updateDto.RoomNumber} is occupied"));
+            if (room.ClientState == ClientState.BookedRoom) return BadRequest(new ApiResponse(404, $"Room no {updateDto.RoomNumber} has been booked"));
 
-            var room = await _repository.FindByIdAsync(roomId);
-            if (room == null) return NotFound(new ApiResponse(404));
+            room.RoomState = RoomState.Occupied;
+            room.ClientState = ClientState.CheckIn;
+            room.TotalAmount = room.RoomAmount * (updateDto.To - updateDto.From).TotalDays;
 
             _mapper.Map(updateDto, room);
             await _repository.ReplaceOneAsync(room);
-            if(!updateDto.IsOccupancy)
-            {
-                // update room checkins status
-                var rm = await _roomRepository.FindOneAsync(x => x.RoomNumber == updateDto.RoomNumber);
-                rm.CheckIns = false;
-                await _roomRepository.ReplaceOneAsync(rm);
-            }
             return NoContent();
         }
 
-        [HttpDelete("{roomId:length(24)}")]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [HttpPut("checkout")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> DeleteOccupiedRoom(string roomId)
+        public async Task<IActionResult> CheckOut(UpdateRoomOccupiedDto updateDto)
         {
-            if (string.IsNullOrWhiteSpace(roomId)) return BadRequest(new ApiResponse(400));
-            if (Role != UserRole.Admin.ToString()) return StatusCode(403, $"Access denied.");
+            if (updateDto == null) return BadRequest(new ApiResponse(400));
+            var room = await _repository.FindOneAsync(x => x.RoomNumber == updateDto.RoomNumber);
+            if (room == null) return BadRequest(new ApiResponse(404, $"Room no {updateDto.RoomNumber} does not exists"));
 
-            var room = await _repository.FindByIdAsync(roomId);
-            if (room == null) return NotFound(new ApiResponse(404));
+            room.RoomState = RoomState.Free;
+            room.ClientState = ClientState.CheckOut;
+            room.TotalAmount = 0;
 
-            await _repository.DeleteByIdAsync(roomId);
+            _mapper.Map(updateDto, room);
+            await _repository.ReplaceOneAsync(room);
             return NoContent();
         }
 
